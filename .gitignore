@@ -1,0 +1,7 @@
+node_modules/
+posted-cache.json
+test-msg.json
+perm.json
+test-bump.json
+fly.toml
+Dockerfile

@@ -1,0 +1,14 @@
+{
+  "name": "nsfw-bot",
+  "version": "1.0.0",
+  "description": "NSFW Discord bot",
+  "main": "bot.js",
+  "scripts": {
+    "start": "node bot.js"
+  },
+  "dependencies": {
+    "@discordjs/voice": "^0.19.2",
+    "discord.js": "^14.14.1",
+    "node-fetch": "^2.7.0"
+  }
+}
