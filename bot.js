@@ -415,7 +415,7 @@ client.on(Events.MessageCreate, async (message) => {
 
     const links = posts.map((p, i) => {
       const source = p.source && p.source.startsWith('http') ? p.source : p.file_url
-      return `Content ${i + 1} | [Source](${source})`
+      return `Content ${i + 1} | [Source](<${source}>)`
     }).join('\n')
 
     const files = []
@@ -428,13 +428,6 @@ client.on(Events.MessageCreate, async (message) => {
         name: fileName
       })
     }
-
-    const embed = new EmbedBuilder()
-      .setColor(0xd4a832)
-      .setTitle('18+ Rule34')
-      .setDescription(`**Tags:** \`${tags}~\`\n\n${links}`)
-      .setFooter({ text: `${posts.length} results` })
-      .setTimestamp()
 
     const webhooks = await message.channel.fetchWebhooks()
     let webhook = webhooks.find(w => w.name === 'Weeping R34')
