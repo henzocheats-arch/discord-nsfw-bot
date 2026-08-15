@@ -156,13 +156,13 @@ client.on(Events.MessageCreate, async (message) => {
     try {
       const replied = await message.channel.messages.fetch(message.reference.messageId)
       if (replied && replied.member?.moderatable) {
-        await replied.member.timeout(3 * 60 * 1000, 'Owner said cease')
-        await replied.author.send(`🔇 You have been timed out in **${message.guild.name}** for **3 minutes**.\n\n**Reason:** Owner said cease\n**Channel:** <#${message.channel.id}>\n**Your message:** ||${replied.content}||`).catch(() => {})
+        await replied.member.timeout(3 * 60 * 1000, 'Creator said cease')
+        await replied.author.send(`🔇 You have been timed out in **${message.guild.name}** for **3 minutes**.\n\n**Reason:** Creator said cease\n**Channel:** <#${message.channel.id}>\n**Your message:** ||${replied.content}||`).catch(() => {})
         await message.channel.send({
           content: `${replied.author}, Is Gone For Now.`,
           files: [BAN_GIF]
         })
-        await notifyOwners(message.guild, `🔇 **${replied.author.username}** timed out for **3 min**\nReason: Owner said cease\nChannel: <#${message.channel.id}>\nMessage: ||${replied.content}||`)
+        await notifyOwners(message.guild, `🔇 **${replied.author.username}** timed out for **3 min**\nReason: Creator said cease\nChannel: <#${message.channel.id}>\nMessage: ||${replied.content}||`)
         console.log(`Timed out ${replied.author.tag} for 3min (cease) in #${message.channel.name}`)
       } else {
         console.log(`Cease failed: replied=${!!replied}, moderatable=${replied?.member?.moderatable}, target=${replied?.author?.tag}`)
