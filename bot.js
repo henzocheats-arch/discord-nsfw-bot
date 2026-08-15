@@ -380,8 +380,10 @@ client.on(Events.MessageCreate, async (message) => {
       return
     }
     const text = await res.text()
-    const posts = text ? JSON.parse(text) : []
-    if (!Array.isArray(posts) || posts.length === 0) {
+    let posts = []
+    try { posts = JSON.parse(text) } catch {}
+    if (!Array.isArray(posts)) posts = []
+    if (posts.length === 0) {
       await message.reply('No results found.')
       return
     }
