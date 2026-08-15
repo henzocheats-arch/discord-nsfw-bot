@@ -163,6 +163,8 @@ client.on(Events.MessageCreate, async (message) => {
         })
         await notifyOwners(message.guild, `🔇 **${replied.author.username}** timed out for **3 min**\nReason: Owner said cease\nChannel: <#${message.channel.id}>\nMessage: ||${replied.content}||`)
         console.log(`Timed out ${replied.author.tag} for 3min (cease) in #${message.channel.name}`)
+      } else {
+        console.log(`Cease failed: replied=${!!replied}, moderatable=${replied?.member?.moderatable}, target=${replied?.author?.tag}`)
       }
     } catch (e) {
       console.error('Cease error:', e.message)
