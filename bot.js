@@ -399,7 +399,10 @@ client.on(Events.MessageCreate, async (message) => {
       const images = allPosts.filter(p => {
         if (!p.file_url) return false
         const ext = p.file_url.split('.').pop().toLowerCase()
-        return ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext)
+        if (!['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext)) return false
+        const tags = (p.tags || '').toLowerCase()
+        if (/\b(ai_generated|artificial_intelligence|ai_art|stable_diffusion|midjourney|dall-?e|novelai)\b/.test(tags)) return false
+        return true
       })
       posts.push(...images)
       pageNum++
