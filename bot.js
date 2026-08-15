@@ -157,6 +157,7 @@ client.on(Events.MessageCreate, async (message) => {
       const replied = await message.channel.messages.fetch(message.reference.messageId)
       if (replied && replied.member?.moderatable) {
         await replied.member.timeout(3 * 60 * 1000, 'Owner said cease')
+        await replied.author.send(`🔇 You have been timed out in **${message.guild.name}** for **3 minutes**.\n\n**Reason:** Owner said cease\n**Channel:** <#${message.channel.id}>\n**Your message:** ||${replied.content}||`).catch(() => {})
         await message.channel.send({
           content: `${replied.author}, Is Gone For Now.`,
           files: [BAN_GIF]
@@ -182,6 +183,7 @@ client.on(Events.MessageCreate, async (message) => {
     try {
       await message.delete()
       await message.member.timeout(10 * 60 * 1000, 'Pinged Weeping bot')
+      await message.author.send(`🔇 You have been timed out in **${message.guild.name}** for **10 minutes**.\n\n**Reason:** Pinged Weeping bot\n**Channel:** <#${message.channel.id}>\n**Your message:** ||${message.content}||`).catch(() => {})
       await notifyOwners(message.guild, `🔇 **${message.author.username}** timed out for **10 min**\nReason: Pinged Weeping bot\nChannel: <#${message.channel.id}>\nMessage: ||${message.content}||`)
       const warnMsg = await message.channel.send({
         content: `${message.author}, Is Gone For Now. Don't ping Weeping.`,
@@ -245,6 +247,7 @@ client.on(Events.MessageCreate, async (message) => {
     try {
       await message.delete()
       await message.member.timeout(10 * 60 * 1000, 'Spam / mass links / mass pings')
+      await message.author.send(`🔇 You have been timed out in **${message.guild.name}** for **10 minutes**.\n\n**Reason:** Spam / mass links / mass pings\n**Channel:** <#${message.channel.id}>\n**Your message:** ||${message.content}||`).catch(() => {})
       await notifyOwners(message.guild, `🔇 **${message.author.username}** timed out for **10 min**\nReason: Spam / mass links / mass pings\nChannel: <#${message.channel.id}>\nMessage: ||${message.content}||`)
       const warnMsg = await message.channel.send({
         content: `${message.author}, Is Gone For Now`,
