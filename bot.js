@@ -372,9 +372,11 @@ client.on(Events.MessageCreate, async (message) => {
     return
   }
 
+  const { AttachmentBuilder } = require('discord.js')
+
   try {
     await message.channel.sendTyping()
-    const res = await fetch(`https://api.rule34.xxx/index.php?page=dapi&s=post&q=index&tags=${encodeURIComponent(tags)}&limit=10&json=1&api_key=08118c8a498c85ec8daacf95ba116e9e1a1a899b2b2c400448fecf1534dabf50449e074b8dbc3f05bef80220e4e36a891912b93436175f4481f52a6c56bbeb9e&user_id=6356082`)
+    const res = await fetch(`https://api.rule34.xxx/index.php?page=dapi&s=post&q=index&tags=${encodeURIComponent(tags)}&limit=20&json=1&api_key=08118c8a498c85ec8daacf95ba116e9e1a1a899b2b2c400448fecf1534dabf50449e074b8dbc3f05bef80220e4e36a891912b93436175f4481f52a6c56bbeb9e&user_id=6356082`)
     if (!res.ok) {
       await message.reply('Failed to fetch from Rule34.')
       return
@@ -383,7 +385,21 @@ client.on(Events.MessageCreate, async (message) => {
     let allPosts = []
     try { allPosts = JSON.parse(text) } catch {}
     if (!Array.isArray(allPosts)) allPosts = []
-    const posts = allPosts.filter(p => p.file_url).slice(0, 4)
+
+    const imagePosts = allPosts.filter(p => {
+      if (!p.file_url) return false
+      const ext = p.file_url.split('.').pop().toLowerCase()
+      return ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext)
+    }).slice(0, 5)
+
+    const videoPosts = allPosts.filter(p => {
+      if (!p.file_url) return false
+      const ext = p.file_url.split('.').pop().toLowerCase()
+      return ['mp4', 'webm', 'mov'].includes(ext)
+    }).slice(0, 5)
+
+    const posts = [...imagePosts, ...videoPosts].slice(0, 5)
+
     if (posts.length === 0) {
       await message.reply('No results found.')
       return
@@ -391,27 +407,37 @@ client.on(Events.MessageCreate, async (message) => {
 
     const links = posts.map((p, i) => {
       const ext = p.file_url.split('.').pop().toLowerCase()
-      const type = ['mp4', 'webm', 'mov'].includes(ext) ? 'Video' : 'Image'
-      return `[${type} ${i + 1}](${p.file_url})`
-    }).join(' | ')
+      const isVideo = ['mp4', 'webm', 'mov'].includes(ext)
+      const source = p.source || p.file_url
+      return `**Content ${i + 1}** | [Source](${source})`
+    }).join('\n')
 
-    const embed = new EmbedBuilder()
-      .setColor(0xd4a832)
-      .setTitle('Rule34')
-      .setDescription(`**Tags:** \`${tags}\`\n\n${links}`)
-      .setFooter({ text: `${allPosts.length} total results • showing ${posts.length}` })
-      .setTimestamp()
-
-    if (posts[0]) {
-      const ext = posts[0].file_url.split('.').pop().toLowerCase()
-      if (['mp4', 'webm', 'mov'].includes(ext)) {
-        embed.setThumbnail('https://rule34.xxx/images/app/rule34_logo.png')
-      } else {
-        embed.setThumbnail(posts[0].sample_url || posts[0].file_url)
+    const attachments = []
+    const files = []
+    for (let i = 0; i < posts.length; i++) {
+      const p = posts[i]
+      const ext = p.file_url.split('.').pop().toLowerCase()
+      const isVideo = ['mp4', 'webm', 'mov'].includes(ext)
+      if (isVideo) continue
+      try {
+        const imgRes = await fetch(p.sample_url || p.file_url)
+        if (!imgRes.ok) continue
+        const buffer = Buffer.from(await imgRes.arrayBuffer())
+        const fileName = `r34_${i + 1}.${ext}`
+        files.push(new AttachmentBuilder(buffer, { name: fileName }))
+      } catch (e) {
+        console.error(`Failed to fetch image ${i}:`, e.message)
       }
     }
 
-    await message.reply({ embeds: [embed] })
+    const embed = new EmbedBuilder()
+      .setColor(0xd4a832)
+      .setTitle('18+ Rule34')
+      .setDescription(`**Tags:** \`${tags}~\`\n\n${links}`)
+      .setFooter({ text: `${allPosts.length} total results • showing ${posts.length}` })
+      .setTimestamp()
+
+    await message.reply({ embeds: [embed], files })
   } catch (e) {
     console.error('w.r34 error:', e.message)
     await message.reply('Error searching Rule34.')
