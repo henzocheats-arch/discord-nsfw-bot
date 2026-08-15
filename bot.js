@@ -173,6 +173,50 @@ client.on(Events.MessageCreate, async (message) => {
     return
   }
 
+  // Owner only: reply to someone + "ban" -> ban
+  if (content === 'ban' && message.reference && userId === '1130704176909930516') {
+    try {
+      const replied = await message.channel.messages.fetch(message.reference.messageId)
+      if (replied && replied.member?.bannable) {
+        await replied.author.send(`🔨 You have been banned from **${message.guild.name}**.\n\n**Reason:** Creator said ban\n**Channel:** <#${message.channel.id}>\n**Your message:** ||${replied.content}||`).catch(() => {})
+        await replied.member.ban({ reason: 'Creator said ban' })
+        await message.channel.send({
+          content: `${replied.author} has been banned.`,
+          files: [BAN_GIF]
+        })
+        await notifyOwners(message.guild, `🔨 **${replied.author.username}** has been banned\nReason: Creator said ban\nChannel: <#${message.channel.id}>\nMessage: ||${replied.content}||`)
+        console.log(`Banned ${replied.author.tag} (creator said ban) in #${message.channel.name}`)
+      } else {
+        console.log(`Ban failed: replied=${!!replied}, bannable=${replied?.member?.bannable}, target=${replied?.author?.tag}`)
+      }
+    } catch (e) {
+      console.error('Ban error:', e.message)
+    }
+    return
+  }
+
+  // Owner only: reply to someone + "kick" -> kick
+  if (content === 'kick' && message.reference && userId === '1130704176909930516') {
+    try {
+      const replied = await message.channel.messages.fetch(message.reference.messageId)
+      if (replied && replied.member?.kickable) {
+        await replied.author.send(`👢 You have been kicked from **${message.guild.name}**.\n\n**Reason:** Creator said kick\n**Channel:** <#${message.channel.id}>\n**Your message:** ||${replied.content}||`).catch(() => {})
+        await replied.member.kick('Creator said kick')
+        await message.channel.send({
+          content: `${replied.author} has been kicked.`,
+          files: [BAN_GIF]
+        })
+        await notifyOwners(message.guild, `👢 **${replied.author.username}** has been kicked\nReason: Creator said kick\nChannel: <#${message.channel.id}>\nMessage: ||${replied.content}||`)
+        console.log(`Kicked ${replied.author.tag} (creator said kick) in #${message.channel.name}`)
+      } else {
+        console.log(`Kick failed: replied=${!!replied}, kickable=${replied?.member?.kickable}, target=${replied?.author?.tag}`)
+      }
+    } catch (e) {
+      console.error('Kick error:', e.message)
+    }
+    return
+  }
+
   // Everything else blocked when paused
   if (botPaused) return
 
