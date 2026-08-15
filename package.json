@@ -9,6 +9,7 @@
   "dependencies": {
     "@discordjs/voice": "^0.19.2",
     "discord.js": "^14.14.1",
-    "node-fetch": "^2.7.0"
+    "node-fetch": "^2.7.0",
+    "sharp": "^0.34.5"
   }
 }
