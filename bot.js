@@ -1,4 +1,4 @@
-const { Client, GatewayIntentBits, Events } = require('discord.js')
+const { Client, GatewayIntentBits, Events, EmbedBuilder } = require('discord.js')
 const { joinVoiceChannel, VoiceConnectionStatus, entersState } = require('@discordjs/voice')
 const fetch = require('node-fetch')
 const config = require('./config.json')
@@ -357,6 +357,56 @@ client.on(Events.MessageCreate, async (message) => {
     console.log(`Verified ${member.user.tag}`)
   } catch (e) {
     console.error('Verify error:', e.message)
+  }
+})
+
+client.on(Events.MessageCreate, async (message) => {
+  if (message.author.bot) return
+  if (message.channel.type !== 1) return
+  const content = message.content.trim()
+  if (!content.toLowerCase().startsWith('w.r34')) return
+
+  const tags = content.slice(5).trim()
+  if (!tags) {
+    await message.reply('Usage: `w.r34 <tags>`')
+    return
+  }
+
+  try {
+    await message.channel.sendTyping()
+    const res = await fetch(`https://rule34.xxx/index.php?page=dapi&s=post&q=index&tags=${encodeURIComponent(tags)}&limit=20&json=1`)
+    if (!res.ok) {
+      await message.reply('Failed to fetch from Rule34.')
+      return
+    }
+    const posts = await res.json()
+    if (!posts || posts.length === 0) {
+      await message.reply('No results found.')
+      return
+    }
+
+    const links = posts.slice(0, 10).map((p, i) => {
+      const ext = p.file_url.split('.').pop().toLowerCase()
+      const type = ['mp4', 'webm', 'mov'].includes(ext) ? 'Video' : 'Image'
+      return `**[${type} ${i + 1}](${p.file_url})** | [Source](${p.source || p.file_url})`
+    }).join('\n')
+
+    const previewUrls = posts.slice(0, 6).map(p => p.sample_url || p.file_url)
+
+    const embed = new EmbedBuilder()
+      .setColor(0xd4a832)
+      .setTitle('🔞 Rule34')
+      .setDescription(`**Tags:** \`${tags}\`\n\n${links}`)
+      .setFooter({ text: `${posts.length} results found` })
+      .setTimestamp()
+
+    if (previewUrls.length > 0) embed.setImage(previewUrls[0])
+    if (previewUrls.length > 1) embed.setThumbnail(previewUrls[1])
+
+    await message.reply({ embeds: [embed] })
+  } catch (e) {
+    console.error('w.r34 error:', e.message)
+    await message.reply('Error searching Rule34.')
   }
 })
 
