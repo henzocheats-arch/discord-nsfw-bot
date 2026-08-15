@@ -443,7 +443,7 @@ client.on(Events.MessageCreate, async (message) => {
     }
 
     await webhook.send({
-      embeds: [embed],
+      content: `**Tags:** \`${tags}~\`\n\n${links}`,
       files: files,
       username: message.client.user.displayName,
       avatarURL: message.client.user.displayAvatarURL()
