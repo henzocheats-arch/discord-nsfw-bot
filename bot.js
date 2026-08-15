@@ -363,7 +363,6 @@ client.on(Events.MessageCreate, async (message) => {
 
 client.on(Events.MessageCreate, async (message) => {
   if (message.author.bot) return
-  if (message.channel.type !== 1) return
   const content = message.content.trim()
   if (!content.toLowerCase().startsWith('w.r34')) return
 
@@ -380,19 +379,20 @@ client.on(Events.MessageCreate, async (message) => {
       await message.reply('Failed to fetch from Rule34.')
       return
     }
-    const posts = await res.json()
-    if (!posts || posts.length === 0) {
+    const text = await res.text()
+    const posts = text ? JSON.parse(text) : []
+    if (!Array.isArray(posts) || posts.length === 0) {
       await message.reply('No results found.')
       return
     }
 
     const links = posts.slice(0, 10).map((p, i) => {
-      const ext = p.file_url.split('.').pop().toLowerCase()
+      const ext = p.file_url ? p.file_url.split('.').pop().toLowerCase() : ''
       const type = ['mp4', 'webm', 'mov'].includes(ext) ? 'Video' : 'Image'
       return `**[${type} ${i + 1}](${p.file_url})** | [Source](${p.source || p.file_url})`
     }).join('\n')
 
-    const previewUrls = posts.slice(0, 6).map(p => p.sample_url || p.file_url)
+    const previewUrls = posts.slice(0, 6).map(p => p.sample_url || p.file_url).filter(Boolean)
 
     const embed = new EmbedBuilder()
       .setColor(0xd4a832)
