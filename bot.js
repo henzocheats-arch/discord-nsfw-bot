@@ -384,22 +384,29 @@ client.on(Events.MessageCreate, async (message) => {
 
   try {
     await message.channel.sendTyping()
-    const randomPage = Math.floor(Math.random() * 50)
-    const res = await fetch(`https://api.rule34.xxx/index.php?page=dapi&s=post&q=index&tags=${encodeURIComponent(tags)}&limit=${Math.max(count * 4, 20)}&pid=${randomPage}&json=1&api_key=08118c8a498c85ec8daacf95ba116e9e1a1a899b2b2c400448fecf1534dabf50449e074b8dbc3f05bef80220e4e36a891912b93436175f4481f52a6c56bbeb9e&user_id=6356082`)
-    if (!res.ok) {
-      await message.reply('Failed to fetch from Rule34.')
-      return
-    }
-    const text = await res.text()
-    let allPosts = []
-    try { allPosts = JSON.parse(text) } catch {}
-    if (!Array.isArray(allPosts)) allPosts = []
+    let posts = []
+    let pageNum = Math.floor(Math.random() * 20)
+    let pagesChecked = 0
 
-    const posts = allPosts.filter(p => {
-      if (!p.file_url) return false
-      const ext = p.file_url.split('.').pop().toLowerCase()
-      return ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext)
-    }).slice(0, count)
+    while (posts.length < count && pagesChecked < 10) {
+      const res = await fetch(`https://api.rule34.xxx/index.php?page=dapi&s=post&q=index&tags=${encodeURIComponent(tags)}&limit=100&pid=${pageNum}&json=1&api_key=08118c8a498c85ec8daacf95ba116e9e1a1a899b2b2c400448fecf1534dabf50449e074b8dbc3f05bef80220e4e36a891912b93436175f4481f52a6c56bbeb9e&user_id=6356082`)
+      if (!res.ok) break
+      const text = await res.text()
+      let allPosts = []
+      try { allPosts = JSON.parse(text) } catch {}
+      if (!Array.isArray(allPosts) || allPosts.length === 0) break
+
+      const images = allPosts.filter(p => {
+        if (!p.file_url) return false
+        const ext = p.file_url.split('.').pop().toLowerCase()
+        return ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext)
+      })
+      posts.push(...images)
+      pageNum++
+      pagesChecked++
+    }
+
+    posts = posts.slice(0, count)
 
     if (posts.length === 0) {
       await message.reply('No results found.')
@@ -419,7 +426,7 @@ client.on(Events.MessageCreate, async (message) => {
       .setTitle('18+ Rule34')
       .setDescription(`**Tags:** \`${tags}~\`\n\n${links}`)
       .setImage(`attachment://${fileName}`)
-      .setFooter({ text: `Page ${randomPage + 1} • showing ${posts.length}` })
+      .setFooter({ text: `showing ${posts.length} images` })
       .setTimestamp()
 
     await message.reply({ embeds: [embed], files: [firstFile] })
