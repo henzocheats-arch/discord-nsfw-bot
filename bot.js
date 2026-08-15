@@ -392,17 +392,24 @@ client.on(Events.MessageCreate, async (message) => {
     const links = posts.map((p, i) => {
       const ext = p.file_url.split('.').pop().toLowerCase()
       const type = ['mp4', 'webm', 'mov'].includes(ext) ? 'Video' : 'Image'
-      return `**[${type} ${i + 1}](${p.file_url})**`
+      return `[${type} ${i + 1}](${p.file_url})`
     }).join(' | ')
 
     const embed = new EmbedBuilder()
       .setColor(0xd4a832)
-      .setTitle('🔞 Rule34')
+      .setTitle('Rule34')
       .setDescription(`**Tags:** \`${tags}\`\n\n${links}`)
       .setFooter({ text: `${allPosts.length} total results • showing ${posts.length}` })
       .setTimestamp()
 
-    if (posts[0]) embed.setImage(posts[0].sample_url || posts[0].file_url)
+    if (posts[0]) {
+      const ext = posts[0].file_url.split('.').pop().toLowerCase()
+      if (['mp4', 'webm', 'mov'].includes(ext)) {
+        embed.setThumbnail('https://rule34.xxx/images/app/rule34_logo.png')
+      } else {
+        embed.setThumbnail(posts[0].sample_url || posts[0].file_url)
+      }
+    }
 
     await message.reply({ embeds: [embed] })
   } catch (e) {
