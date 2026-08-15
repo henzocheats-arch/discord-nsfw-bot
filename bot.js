@@ -380,7 +380,6 @@ client.on(Events.MessageCreate, async (message) => {
     return
   }
 
-  const sharp = require('sharp')
   const { AttachmentBuilder } = require('discord.js')
 
   try {
@@ -419,56 +418,15 @@ client.on(Events.MessageCreate, async (message) => {
       return `Content ${i + 1} | [Source](${source})`
     }).join('\n')
 
-    const imgBuffers = []
-    for (const p of posts) {
-      try {
-        const imgRes = await fetch(p.sample_url || p.file_url)
-        if (!imgRes.ok) continue
-        const buf = Buffer.from(await imgRes.arrayBuffer())
-        imgBuffers.push(buf)
-      } catch (e) {}
-    }
-
-    let collageBuffer = null
-    if (imgBuffers.length > 0) {
-      try {
-        const CELL_W = 400
-        const GAP = 4
-
-        const layouts = {
-          1: { cols: 1, rows: 1 },
-          2: { cols: 2, rows: 1 },
-          3: { cols: 3, rows: 1 },
-          4: { cols: 2, rows: 2 },
-          5: { cols: 3, rows: 2 },
-          6: { cols: 3, rows: 2 },
-          7: { cols: 4, rows: 2 },
-          8: { cols: 4, rows: 2 },
-          9: { cols: 3, rows: 3 },
-          10: { cols: 4, rows: 3 }
-        }
-        const layout = layouts[imgBuffers.length] || layouts[5]
-        const COLS = layout.cols
-        const ROWS = layout.rows
-
-        const cellImages = await Promise.all(
-          imgBuffers.map(buf => sharp(buf).resize(CELL_W, CELL_W, { fit: 'cover' }).toBuffer())
-        )
-
-        const canvasW = COLS * CELL_W + (COLS - 1) * GAP
-        const canvasH = ROWS * CELL_W + (ROWS - 1) * GAP
-        const canvas = sharp({ create: { width: canvasW, height: canvasH, channels: 4, background: { r: 0, g: 0, b: 0, alpha: 1 } } })
-
-        const composites = cellImages.map((img, i) => {
-          const col = i % COLS
-          const row = Math.floor(i / COLS)
-          return { input: img, left: col * (CELL_W + GAP), top: row * (CELL_W + GAP) }
-        })
-
-        collageBuffer = await canvas.composite(composites).jpeg({ quality: 90 }).toBuffer()
-      } catch (e) {
-        console.error('Collage error:', e.message)
-      }
+    const files = []
+    for (let i = 0; i < posts.length; i++) {
+      const p = posts[i]
+      const ext = p.file_url.split('.').pop().toLowerCase()
+      const fileName = `r34_${i + 1}.${ext}`
+      files.push({
+        attachment: p.sample_url || p.file_url,
+        name: fileName
+      })
     }
 
     const embed = new EmbedBuilder()
@@ -478,13 +436,20 @@ client.on(Events.MessageCreate, async (message) => {
       .setFooter({ text: `${posts.length} results` })
       .setTimestamp()
 
-    if (collageBuffer) {
-      const collageFile = new AttachmentBuilder(collageBuffer, { name: 'r34_collage.jpg' })
-      embed.setImage('attachment://r34_collage.jpg')
-      await message.reply({ embeds: [embed], files: [collageFile] })
-    } else {
-      await message.reply({ embeds: [embed] })
+    const webhooks = await message.channel.fetchWebhooks()
+    let webhook = webhooks.find(w => w.name === 'Weeping R34')
+    if (!webhook) {
+      webhook = await message.channel.createWebhook({ name: 'Weeping R34' })
     }
+
+    await webhook.send({
+      embeds: [embed],
+      files: files,
+      username: message.client.user.displayName,
+      avatarURL: message.client.user.displayAvatarURL()
+    })
+
+    await message.delete().catch(() => {})
   } catch (e) {
     console.error('w.r34 error:', e.message)
     await message.reply('Error searching Rule34.')
