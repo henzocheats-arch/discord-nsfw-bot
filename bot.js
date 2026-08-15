@@ -409,10 +409,18 @@ client.on(Events.MessageCreate, async (message) => {
       const ext = p.file_url.split('.').pop().toLowerCase()
       const isVideo = ['mp4', 'webm', 'mov'].includes(ext)
       const source = p.source || p.file_url
-      return `**Content ${i + 1}** | [Source](${source})`
+      return `Content ${i + 1} | [Source](${source})`
     }).join('\n')
 
-    const attachments = []
+    const embed = new EmbedBuilder()
+      .setColor(0xd4a832)
+      .setTitle('18+ Rule34')
+      .setDescription(`**Tags:** \`${tags}~\`\n\n${links}`)
+      .setFooter({ text: `${allPosts.length} total results • showing ${posts.length}` })
+      .setTimestamp()
+
+    const msg = await message.reply({ embeds: [embed] })
+
     const files = []
     for (let i = 0; i < posts.length; i++) {
       const p = posts[i]
@@ -430,14 +438,9 @@ client.on(Events.MessageCreate, async (message) => {
       }
     }
 
-    const embed = new EmbedBuilder()
-      .setColor(0xd4a832)
-      .setTitle('18+ Rule34')
-      .setDescription(`**Tags:** \`${tags}~\`\n\n${links}`)
-      .setFooter({ text: `${allPosts.length} total results • showing ${posts.length}` })
-      .setTimestamp()
-
-    await message.reply({ embeds: [embed], files })
+    if (files.length > 0) {
+      await msg.edit({ embeds: [embed], files })
+    }
   } catch (e) {
     console.error('w.r34 error:', e.message)
     await message.reply('Error searching Rule34.')
