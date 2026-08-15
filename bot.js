@@ -374,37 +374,35 @@ client.on(Events.MessageCreate, async (message) => {
 
   try {
     await message.channel.sendTyping()
-    const res = await fetch(`https://api.rule34.xxx/index.php?page=dapi&s=post&q=index&tags=${encodeURIComponent(tags)}&limit=20&json=1&api_key=08118c8a498c85ec8daacf95ba116e9e1a1a899b2b2c400448fecf1534dabf50449e074b8dbc3f05bef80220e4e36a891912b93436175f4481f52a6c56bbeb9e&user_id=6356082`)
+    const res = await fetch(`https://api.rule34.xxx/index.php?page=dapi&s=post&q=index&tags=${encodeURIComponent(tags)}&limit=10&json=1&api_key=08118c8a498c85ec8daacf95ba116e9e1a1a899b2b2c400448fecf1534dabf50449e074b8dbc3f05bef80220e4e36a891912b93436175f4481f52a6c56bbeb9e&user_id=6356082`)
     if (!res.ok) {
       await message.reply('Failed to fetch from Rule34.')
       return
     }
     const text = await res.text()
-    let posts = []
-    try { posts = JSON.parse(text) } catch {}
-    if (!Array.isArray(posts)) posts = []
+    let allPosts = []
+    try { allPosts = JSON.parse(text) } catch {}
+    if (!Array.isArray(allPosts)) allPosts = []
+    const posts = allPosts.filter(p => p.file_url).slice(0, 4)
     if (posts.length === 0) {
       await message.reply('No results found.')
       return
     }
 
-    const links = posts.slice(0, 10).map((p, i) => {
-      const ext = p.file_url ? p.file_url.split('.').pop().toLowerCase() : ''
+    const links = posts.map((p, i) => {
+      const ext = p.file_url.split('.').pop().toLowerCase()
       const type = ['mp4', 'webm', 'mov'].includes(ext) ? 'Video' : 'Image'
-      return `**[${type} ${i + 1}](${p.file_url})** | [Source](${p.source || p.file_url})`
-    }).join('\n')
-
-    const previewUrls = posts.slice(0, 6).map(p => p.sample_url || p.file_url).filter(Boolean)
+      return `**[${type} ${i + 1}](${p.file_url})**`
+    }).join(' | ')
 
     const embed = new EmbedBuilder()
       .setColor(0xd4a832)
       .setTitle('🔞 Rule34')
       .setDescription(`**Tags:** \`${tags}\`\n\n${links}`)
-      .setFooter({ text: `${posts.length} results found` })
+      .setFooter({ text: `${allPosts.length} total results • showing ${posts.length}` })
       .setTimestamp()
 
-    if (previewUrls.length > 0) embed.setImage(previewUrls[0])
-    if (previewUrls.length > 1) embed.setThumbnail(previewUrls[1])
+    if (posts[0]) embed.setImage(posts[0].sample_url || posts[0].file_url)
 
     await message.reply({ embeds: [embed] })
   } catch (e) {
