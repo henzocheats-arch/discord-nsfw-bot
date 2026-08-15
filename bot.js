@@ -395,46 +395,34 @@ client.on(Events.MessageCreate, async (message) => {
     try { allPosts = JSON.parse(text) } catch {}
     if (!Array.isArray(allPosts)) allPosts = []
 
-    const allValid = allPosts.filter(p => p.file_url).slice(0, count)
-    const imagePosts = allPosts.filter(p => {
+    const posts = allPosts.filter(p => {
       if (!p.file_url) return false
       const ext = p.file_url.split('.').pop().toLowerCase()
       return ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext)
     }).slice(0, count)
 
-    if (allValid.length === 0) {
+    if (posts.length === 0) {
       await message.reply('No results found.')
       return
     }
 
-    const links = allValid.map((p, i) => {
-      const ext = p.file_url.split('.').pop().toLowerCase()
-      const isVideo = ['mp4', 'webm', 'mov'].includes(ext)
-      const type = isVideo ? 'Video' : 'Image'
+    const links = posts.map((p, i) => {
       const source = p.source && p.source.startsWith('http') ? p.source : p.file_url
-      return `${type} ${i + 1} | [Source](${source})`
+      return `Image ${i + 1} | [Source](${source})`
     }).join('\n')
 
-    if (imagePosts.length > 0) {
-      const fileName = `r34_1.${imagePosts[0].file_url.split('.').pop().toLowerCase()}`
-      const firstFile = new AttachmentBuilder(imagePosts[0].sample_url || imagePosts[0].file_url, { name: fileName })
-      const embed = new EmbedBuilder()
-        .setColor(0xd4a832)
-        .setTitle('18+ Rule34')
-        .setDescription(`**Tags:** \`${tags}~\`\n\n${links}`)
-        .setImage(`attachment://${fileName}`)
-        .setFooter({ text: `Page ${randomPage + 1} • showing ${allValid.length}` })
-        .setTimestamp()
-      await message.reply({ embeds: [embed], files: [firstFile] })
-    } else {
-      const embed = new EmbedBuilder()
-        .setColor(0xd4a832)
-        .setTitle('18+ Rule34')
-        .setDescription(`**Tags:** \`${tags}~\`\n\n${links}`)
-        .setFooter({ text: `Page ${randomPage + 1} • showing ${allValid.length}` })
-        .setTimestamp()
-      await message.reply({ embeds: [embed] })
-    }
+    const fileName = `r34_1.${posts[0].file_url.split('.').pop().toLowerCase()}`
+    const firstFile = new AttachmentBuilder(posts[0].sample_url || posts[0].file_url, { name: fileName })
+
+    const embed = new EmbedBuilder()
+      .setColor(0xd4a832)
+      .setTitle('18+ Rule34')
+      .setDescription(`**Tags:** \`${tags}~\`\n\n${links}`)
+      .setImage(`attachment://${fileName}`)
+      .setFooter({ text: `Page ${randomPage + 1} • showing ${posts.length}` })
+      .setTimestamp()
+
+    await message.reply({ embeds: [embed], files: [firstFile] })
   } catch (e) {
     console.error('w.r34 error:', e.message)
     await message.reply('Error searching Rule34.')
