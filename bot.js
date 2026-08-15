@@ -374,7 +374,7 @@ client.on(Events.MessageCreate, async (message) => {
 
   try {
     await message.channel.sendTyping()
-    const res = await fetch(`https://rule34.xxx/index.php?page=dapi&s=post&q=index&tags=${encodeURIComponent(tags)}&limit=20&json=1`)
+    const res = await fetch(`https://api.rule34.xxx/index.php?page=dapi&s=post&q=index&tags=${encodeURIComponent(tags)}&limit=20&json=1&api_key=08118c8a498c85ec8daacf95ba116e9e1a1a899b2b2c400448fecf1534dabf50449e074b8dbc3f05bef80220e4e36a891912b93436175f4481f52a6c56bbeb9e&user_id=6356082`)
     if (!res.ok) {
       await message.reply('Failed to fetch from Rule34.')
       return
