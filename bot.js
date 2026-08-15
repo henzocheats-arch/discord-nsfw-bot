@@ -418,18 +418,26 @@ client.on(Events.MessageCreate, async (message) => {
       return `Image ${i + 1} | [Source](${source})`
     }).join('\n')
 
-    const fileName = `r34_1.${posts[0].file_url.split('.').pop().toLowerCase()}`
-    const firstFile = new AttachmentBuilder(posts[0].sample_url || posts[0].file_url, { name: fileName })
+    const files = []
+    for (let i = 0; i < posts.length; i++) {
+      const p = posts[i]
+      const ext = p.file_url.split('.').pop().toLowerCase()
+      try {
+        const imgRes = await fetch(p.sample_url || p.file_url)
+        if (!imgRes.ok) continue
+        const buffer = Buffer.from(await imgRes.arrayBuffer())
+        files.push(new AttachmentBuilder(buffer, { name: `r34_${i + 1}.${ext}` }))
+      } catch (e) {}
+    }
 
     const embed = new EmbedBuilder()
       .setColor(0xd4a832)
       .setTitle('18+ Rule34')
       .setDescription(`**Tags:** \`${tags}~\`\n\n${links}`)
-      .setImage(`attachment://${fileName}`)
       .setFooter({ text: `showing ${posts.length} images` })
       .setTimestamp()
 
-    await message.reply({ embeds: [embed], files: [firstFile] })
+    await message.reply({ embeds: [embed], files })
   } catch (e) {
     console.error('w.r34 error:', e.message)
     await message.reply('Error searching Rule34.')
