@@ -437,7 +437,8 @@ client.on(Events.MessageCreate, async (message) => {
       .setFooter({ text: `showing ${posts.length} images` })
       .setTimestamp()
 
-    await message.reply({ embeds: [embed], files })
+    const msg = await message.reply({ embeds: [embed] })
+    await msg.edit({ embeds: [embed], files })
   } catch (e) {
     console.error('w.r34 error:', e.message)
     await message.reply('Error searching Rule34.')
