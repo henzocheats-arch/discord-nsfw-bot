@@ -432,18 +432,31 @@ client.on(Events.MessageCreate, async (message) => {
       })
     }
 
+    const embed = new EmbedBuilder()
+      .setColor(0xd4a832)
+      .setTitle('18+ Rule34')
+      .setDescription(`**Tags:** \`${tags}~\`\n\n${links}`)
+      .setFooter({ text: `${posts.length} results` })
+      .setTimestamp()
+
     const webhooks = await message.channel.fetchWebhooks()
     let webhook = webhooks.find(w => w.name === 'Weeping R34')
     if (!webhook) {
       webhook = await message.channel.createWebhook({ name: 'Weeping R34' })
     }
 
-    await webhook.send({
-      content: `**Tags:** \`${tags}~\`\n\n${links}`,
-      files: files,
+    const msg = await webhook.send({
+      embeds: [embed],
       username: message.client.user.displayName,
       avatarURL: message.client.user.displayAvatarURL()
     })
+
+    if (files.length > 0) {
+      await webhook.editMessage(msg.id, {
+        embeds: [embed],
+        files: files
+      })
+    }
 
     await message.delete().catch(() => {})
   } catch (e) {
