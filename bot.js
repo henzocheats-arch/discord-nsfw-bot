@@ -271,6 +271,32 @@ client.on(Events.MessageCreate, async (message) => {
     return
   }
 
+  // Mega link seller detection
+  const megaSeller = /\b(selling|mega|telegram|whatsapp|snapchat|buy my|dm me|price|cheap|discount)\b/i.test(content)
+  const emojiCount = (content.match(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F1E0}-\u{1F1FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{FE00}-\u{FE0F}\u{1F900}-\u{1F9FF}\u{1FA00}-\u{1FA6F}\u{1FA70}-\u{1FAFF}]/gu) || []).length
+  const hasMegaLink = /mega\.nz|mega\.co|gofile|mediafire|drive\.google/i.test(content)
+
+  if ((megaSeller || hasMegaLink || emojiCount >= 10) && message.member?.moderatable) {
+    try {
+      await message.delete()
+      await message.member.timeout(8 * 60 * 60 * 1000, 'Porn mega link seller / spam')
+      await message.author.send(`🔇 You have been timed out in **${message.guild.name}** for **8 hours**.\n\n**Reason:** Selling/spam detected\n**Channel:** <#${message.channel.id}>\n**Your message:** ||${message.content}||`).catch(() => {})
+      const warnMsg = await message.channel.send({
+        content: `${message.author}, Is Gone For Now.`,
+        files: [BAN_GIF]
+      })
+      setTimeout(() => warnMsg.delete().catch(() => {}), 8000)
+      for (const ownerId of config.ownerId) {
+        const owner = await message.guild.members.fetch(ownerId).catch(() => null)
+        if (owner) await owner.send(`🚨 **SPAMMER CAUGHT**\n**User:** ${message.author.tag} (${message.author.id})\n**Channel:** <#${message.channel.id}>\n**Message:** ||${message.content}||`).catch(() => {})
+      }
+      console.log(`Timed out ${message.author.tag} for 8hr (mega seller) in #${message.channel.name}`)
+    } catch (e) {
+      console.error('Mega seller moderation error:', e.message)
+    }
+    return
+  }
+
   // Spam detection: mass links or repeated messages
   const urlCount = (content.match(/https?:\/\//g) || []).length
   const mentionCount = (content.match(/<@!?\d+>/g) || []).length
