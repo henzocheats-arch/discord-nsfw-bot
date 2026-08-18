@@ -502,6 +502,34 @@ async function rgFetch(url) {
 }
 
 async function getRandomVideo(query, channelConfig) {
+  // Use tik.porn if configured
+  if (channelConfig.tikporn) {
+    try {
+      const res = await fetch(`https://tik.porn/?s=${encodeURIComponent(channelConfig.tikporn)}`, {
+        headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' }
+      })
+      const html = await res.text()
+      const match = html.match(/<script id="__NEXT_DATA__"[^>]*>(.*?)<\/script>/)
+      if (!match) return null
+      const data = JSON.parse(match[1])
+      const videos = data.props?.pageProps?.initialVideoResults?.data
+      if (!videos || videos.length === 0) return null
+      const video = videos[Math.floor(Math.random() * videos.length)]
+      const tags = (video.tags || []).map(t => t.name).join(' ')
+      return {
+        id: 'tikporn-' + video.id,
+        url: video.source?.src || video.downloadLink,
+        type: 'video/mp4',
+        tags: tags.split(' '),
+        title: video.texts?.video?.parsed_text || '',
+        poster: video.poster
+      }
+    } catch (e) {
+      console.error('TikPorn error:', e.message)
+      return null
+    }
+  }
+
   // Rule34 source
   if (channelConfig.source === 'rule34') {
     try {
