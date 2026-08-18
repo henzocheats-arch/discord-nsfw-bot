@@ -511,17 +511,19 @@ async function getRandomVideo(query, channelConfig, channelId) {
   const tikpornSearch = tikpornMap[channelId] || channelConfig.tikporn
   if (tikpornSearch) {
     try {
+      console.log(`TikPorn: searching for "${tikpornSearch}" in #${channelId}`)
       const res = await fetch(`https://tik.porn/?s=${encodeURIComponent(tikpornSearch)}`, {
         headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' }
       })
       const html = await res.text()
       const match = html.match(/<script id="__NEXT_DATA__"[^>]*>(.*?)<\/script>/)
-      if (!match) return null
+      if (!match) { console.log('TikPorn: no __NEXT_DATA__ found'); return null }
       const data = JSON.parse(match[1])
       const videos = data.props?.pageProps?.initialVideoResults?.data
-      if (!videos || videos.length === 0) return null
+      if (!videos || videos.length === 0) { console.log('TikPorn: no videos found'); return null }
       const video = videos[Math.floor(Math.random() * videos.length)]
       const tags = (video.tags || []).map(t => t.name).join(' ')
+      console.log(`TikPorn: found video ${video.id}`)
       return {
         id: 'tikporn-' + video.id,
         url: video.source?.src || video.downloadLink,
