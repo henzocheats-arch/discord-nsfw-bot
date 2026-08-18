@@ -501,11 +501,17 @@ async function rgFetch(url) {
   return res
 }
 
-async function getRandomVideo(query, channelConfig) {
-  // Use tik.porn if configured
-  if (channelConfig.tikporn) {
+async function getRandomVideo(query, channelConfig, channelId) {
+  // Tik.Porn source - hardcoded channel mappings
+  const tikpornMap = {
+    '1536589077908815872': 'white girls',
+    '1536588645505699950': 'latina girls',
+    '1536840296678039594': 'big ass'
+  }
+  const tikpornSearch = tikpornMap[channelId] || channelConfig.tikporn
+  if (tikpornSearch) {
     try {
-      const res = await fetch(`https://tik.porn/?s=${encodeURIComponent(channelConfig.tikporn)}`, {
+      const res = await fetch(`https://tik.porn/?s=${encodeURIComponent(tikpornSearch)}`, {
         headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' }
       })
       const html = await res.text()
@@ -586,7 +592,7 @@ async function postToChannel(channelId, channelConfig) {
 
   for (let attempt = 0; attempt < 2; attempt++) {
     const tags = tagList[Math.floor(Math.random() * tagList.length)]
-    const video = await getRandomVideo(tags, channelConfig)
+    const video = await getRandomVideo(tags, channelConfig, channelId)
 
     if (!video) {
       await new Promise(r => setTimeout(r, 10000))
