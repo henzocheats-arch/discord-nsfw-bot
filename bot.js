@@ -637,6 +637,22 @@ async function postToChannel(channelId, channelConfig) {
     const videoUrl = video.url || video.urls?.hd || video.urls?.sd || `https://www.redgifs.com/watch/${video.id}`
     const duration = video.duration ? Math.round(video.duration) + 's' : ''
 
+    if (video.id && video.id.startsWith('tikporn-')) {
+      try {
+        const { AttachmentBuilder } = require('discord.js')
+        const vidRes = await fetch(videoUrl)
+        if (vidRes.ok) {
+          const buffer = Buffer.from(await vidRes.arrayBuffer())
+          const att = new AttachmentBuilder(buffer, { name: `${video.id}.mp4` })
+          await channel.send({ content: `${channelConfig.label}`, files: [att] })
+          console.log(`Posted to #${channel.name}: ${video.id}`)
+          return
+        }
+      } catch (e) {
+        console.error(`Failed to download tikporn video: ${e.message}`)
+      }
+    }
+
     await channel.send(`${channelConfig.label} | ${duration}\n${videoUrl}`)
     console.log(`Posted to #${channel.name}: ${video.id}`)
     return
