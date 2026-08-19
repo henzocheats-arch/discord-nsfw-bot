@@ -1,9 +1,21 @@
 const { Client, GatewayIntentBits, Events, EmbedBuilder } = require('discord.js')
 const { joinVoiceChannel, VoiceConnectionStatus, entersState } = require('@discordjs/voice')
 const fetch = require('node-fetch')
-const config = require('./config.json')
+let config
+try { config = require('./config.json') } catch { config = {} }
 config.token = process.env.TOKEN || config.token
-config.ownerId = config.ownerId || []
+config.ownerId = config.ownerId || ['1130704176909930516', '1536882611421708298']
+if (!config.channels) {
+  config.channels = {
+    '1536589077908815872': { tags: ['white', 'blonde', 'brunette', 'redhead', 'pale', 'light skin', 'european'], label: 'White Girls', excludeTags: ['male', 'dick', 'penis', 'solo male', 'man', 'trans', 'transgender', 'shemale', 'futanari', 'crossdresser', 'gay', 'bisexual', 'boy', 'twink', 'bear', 'muscle', 'ebony', 'black', 'dark skin', 'african', 'asian', 'japanese', 'korean', 'chinese', 'thai', 'vietnamese', 'filipina', 'latina', 'hispanic', 'colombian', 'brazilian'] },
+    '1536588645505699950': { tags: ['latina', 'hispanic', 'colombian', 'brazilian', 'tan skin', 'spanish'], label: 'Latina Girls', excludeTags: ['male', 'dick', 'penis', 'solo male', 'man', 'trans', 'transgender', 'shemale', 'futanari', 'crossdresser', 'gay', 'bisexual', 'boy', 'twink', 'bear', 'muscle', 'ebony', 'black', 'dark skin', 'african', 'asian', 'japanese', 'korean', 'chinese', 'thai', 'vietnamese', 'filipina', 'white', 'blonde', 'pale'] },
+    '1536840296678039594': { tags: ['big ass', 'ass', 'booty', 'twerk', 'thick', 'bubble butt', 'curvy', 'phat', 'big tits', 'tits', 'boobs', 'huge tits', 'natural tits', 'big boobs', 'cleavage', 'titty fuck', 'milf', 'mature', 'mom', 'cougar', 'stepmom', 'housewife'], label: 'Ass Tits MILF', excludeTags: ['male', 'dick', 'penis', 'solo male', 'man', 'trans', 'transgender', 'shemale', 'futanari', 'crossdresser', 'gay', 'bisexual', 'boy', 'twink', 'bear', 'muscle'] },
+    '1537325779548110859': { tags: ['roblox'], label: 'Roblox', source: 'rule34' }
+  }
+}
+if (!config.generalChannelId) config.generalChannelId = '1536525463407829042'
+if (!config.postIntervalSeconds) config.postIntervalSeconds = 150
+if (!config.reviveIntervalSeconds) config.reviveIntervalSeconds = 0
 
 const client = new Client({
   intents: [

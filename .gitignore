@@ -5,3 +5,4 @@ perm.json
 test-bump.json
 fly.toml
 Dockerfile
+config.json
