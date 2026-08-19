@@ -640,7 +640,9 @@ async function postToChannel(channelId, channelConfig) {
     if (video.id && video.id.startsWith('tikporn-')) {
       try {
         const { AttachmentBuilder } = require('discord.js')
-        const vidRes = await fetch(videoUrl)
+        const vidRes = await fetch(videoUrl, {
+          headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36', 'Referer': 'https://tik.porn/' }
+        })
         if (vidRes.ok) {
           const buffer = Buffer.from(await vidRes.arrayBuffer())
           const att = new AttachmentBuilder(buffer, { name: `${video.id}.mp4` })
