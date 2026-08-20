@@ -640,22 +640,30 @@ async function postToChannel(channelId, channelConfig) {
     if (video.id && video.id.startsWith('tikporn-')) {
       try {
         const { AttachmentBuilder } = require('discord.js')
+        console.log(`Downloading tikporn video from: ${videoUrl}`)
         const vidRes = await fetch(videoUrl, {
-          headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36', 'Referer': 'https://tik.porn/' }
+          headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36', 'Referer': 'https://tik.porn/' },
+          redirect: 'follow'
         })
+        console.log(`TikPorn download status: ${vidRes.status}, content-type: ${vidRes.headers.get('content-type')}`)
         if (vidRes.ok) {
           const buffer = Buffer.from(await vidRes.arrayBuffer())
-          const att = new AttachmentBuilder(buffer, { name: `${video.id}.mp4` })
-          await channel.send({ content: `${channelConfig.label}`, files: [att] })
-          console.log(`Posted to #${channel.name}: ${video.id}`)
-          return
+          console.log(`TikPorn video buffer size: ${buffer.length}`)
+          if (buffer.length > 1000) {
+            const att = new AttachmentBuilder(buffer, { name: `${video.id}.mp4` })
+            await channel.send({ content: `${channelConfig.label}`, files: [att] })
+            console.log(`Posted to #${channel.name}: ${video.id}`)
+            return
+          }
         }
+        console.log(`TikPorn video download failed, falling back to link`)
       } catch (e) {
         console.error(`Failed to download tikporn video: ${e.message}`)
       }
     }
 
     await channel.send(`${channelConfig.label} | ${duration}\n${videoUrl}`)
+    console.log(`Posted link to #${channel.name}: ${video.id}`)
     console.log(`Posted to #${channel.name}: ${video.id}`)
     return
   }
